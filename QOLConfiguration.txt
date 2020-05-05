@@ -1,0 +1,54 @@
+
+; Change these definitions to
+; configure how the QOL features
+; are installed.
+
+QOL_BASEROM :?= "FE5.sfc"
+  ; This is the filepath of the
+  ; ROM to apply the QOL features to.
+
+QOL_FREESPACE :?= $1FB704
+  ; Change this to where you want
+  ; QOL freespace inclusions to go.
+
+; Change these to true to install them.
+
+INSTALL_QOL_GUARD_AI :?= true
+  ; When installed, units that do not
+  ; move due to their AI setting will
+  ; display a movement range of 0.
+
+INSTALL_QOL_MOVEMENT_SPEEDUP :?= true
+  ; When installed, holding A while
+  ; a unit is moving will cause them
+  ; to speed up. Normally, this feature
+  ; is unlocked in the vanilla game
+  ; after beating it at least once.
+
+INSTALL_QOL_SWAP_ANIMATION_MODE :?= true
+  ; When installed, holding L before
+  ; a battle begins will cause the
+  ; animation mode to switch. For example,
+  ; if animations are set to be map-only,
+  ; holding L will cause animations to
+  ; display the normal full battle scene.
+  ; When animations are being set
+  ; individually holding L has no effect.
+
+INSTALL_QOL_TALK_DISPLAY :?= true
+  ; When installed, potential talk conversation
+  ; partners for a selected unit will display
+  ; a bubble above them.
+
+INSTALL_QOL_EQUIPPED_ITEM_PREVIEW :?= true
+  ; When installed, a unit's equipped weapon
+  ; will appear on the burst window. If the
+  ; unit does not have a weapon equipped,
+  ; their first staff will be shown, if they
+  ; have at least one.
+
+INSTALL_QOL_HP_BARS :?= true
+  ; When installed, injured units will
+  ; have a small bar along the bottom of
+  ; their map sprite that gives an
+  ; approximation of their current health.

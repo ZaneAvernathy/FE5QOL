@@ -1,0 +1,20 @@
+
+*.sfc
+*.sym
+
+# Testing files
+*.sav
+*.srm
+*.bst
+
+# Generated files
+*.4bpp
+*.2bpp
+*.comp
+*.csv.asm
+*.bin
+
+# Tools
+
+TOOLS/**
+!TOOLS/fix_sym.py
