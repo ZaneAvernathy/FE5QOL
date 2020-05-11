@@ -36,7 +36,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
       rlUpdateBurstWindow .namespace
 
-        _ClearWindow :?= address($84A215)
+        _ClearWindow :?= address($84A125)
 
       .endn
 
