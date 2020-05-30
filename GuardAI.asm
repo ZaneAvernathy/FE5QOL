@@ -119,6 +119,12 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
       and #$00FF
       sta wR2
 
+      ; Do not set for player units.
+
+      lda aTemporaryActionStruct.DeploymentNumber
+      and #AllAllegiances
+      beq +
+
       ; Check for guard AI combinations.
 
       .for AISetting in ZQOL_GUARD_AI_LIST
