@@ -153,9 +153,9 @@ GUARD_ZQOL_SWAP_ANIMATION_MODE :?= false
 
         _CheckIndividual
 
-        lda structActionStructEntry.UnitState,x
+        lda structActionStructEntry.UnitState,b,x
         bit #UnitStateMapAnim
-        beq _Map
+        bne _Map
 
         _Normal
 
