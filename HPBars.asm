@@ -397,7 +397,7 @@ GUARD_ZQOL_HP_BARS :?= false
         ; Flag whether status should be
         ; shown.
 
-        lda wUnknown0000DB
+        lda wVBlankEnabledFramecount
         and #$0030
         bne +
 

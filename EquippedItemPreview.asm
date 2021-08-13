@@ -136,7 +136,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
           ; every 64 frames if the
           ; unit has a status.
 
-          lda wUnknown0000DB
+          lda wVBlankEnabledFramecount
           and #$003F
           bne +
 
@@ -152,7 +152,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
             and #$00FF
             beq +
 
-              lda wUnknown0000DB
+              lda wVBlankEnabledFramecount
               and #$007F
               beq _SwapHP
 
