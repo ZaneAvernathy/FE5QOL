@@ -11,7 +11,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 .elsif (!GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW)
   GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW := true
 
-  .include "./TOOLS/VoltEdge.h"
+  .include "TOOLS/VoltEdge.h"
 
   ; Definitions
 

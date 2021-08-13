@@ -11,7 +11,7 @@ GUARD_ZQOL_SWAP_ANIMATION_MODE :?= false
 .elsif (!GUARD_ZQOL_SWAP_ANIMATION_MODE)
   GUARD_ZQOL_SWAP_ANIMATION_MODE := true
 
-  .include "./TOOLS/VoltEdge.h"
+  .include "TOOLS/VoltEdge.h"
 
   ; Definitions
 

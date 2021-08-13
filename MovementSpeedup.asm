@@ -11,7 +11,7 @@ GUARD_ZQOL_MOVEMENT_SPEEDUP :?= false
 .elsif (!GUARD_ZQOL_MOVEMENT_SPEEDUP)
   GUARD_ZQOL_MOVEMENT_SPEEDUP := true
 
-  .include "./TOOLS/VoltEdge.h"
+  .include "TOOLS/VoltEdge.h"
 
   ; Definitions
 

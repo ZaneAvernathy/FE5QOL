@@ -11,7 +11,7 @@ GUARD_ZQOL_HP_BARS :?= false
 .elsif (!GUARD_ZQOL_HP_BARS)
   GUARD_ZQOL_HP_BARS := true
 
-  .include "./TOOLS/VoltEdge.h"
+  .include "TOOLS/VoltEdge.h"
 
   ; Definitions
 

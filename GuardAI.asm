@@ -11,7 +11,7 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
 .elsif (!GUARD_ZQOL_GUARD_AI_DISPLAY)
   GUARD_ZQOL_GUARD_AI_DISPLAY := true
 
-  .include "./TOOLS/VoltEdge.h"
+  .include "TOOLS/VoltEdge.h"
 
   ; Definitions
 
