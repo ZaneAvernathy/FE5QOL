@@ -194,7 +194,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
         ; Check if unit is alive/deployed/visible.
 
         lda aTargetingCharacterBuffer.UnitState,b
-        bit #(UnitStateDead | UnitStateUnknown1 | UnitStateActing | UnitStateInvisible | UnitStateCaptured)
+        bit #(UnitStateDead | UnitStateUnknown1 | UnitStateHidden | UnitStateDisabled | UnitStateCaptured)
         bne _End
 
           ; Check if unit is within vision range.

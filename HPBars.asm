@@ -141,7 +141,7 @@ GUARD_ZQOL_HP_BARS :?= false
         bit #UnitStateRescued
         bne +
 
-          bit #UnitStateDead | UnitStateUnknown1 | UnitStateUnselectable | UnitStateActing | UnitStateInvisible | UnitStateCaptured
+          bit #UnitStateDead | UnitStateUnknown1 | UnitStateUnselectable | UnitStateHidden | UnitStateDisabled | UnitStateCaptured
           bne _Next
 
         +
@@ -252,7 +252,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
           lda structExpandedCharacterDataRAM.UnitState,b,x
           plx
-          bit #UnitStateUnselectable | UnitStateActing
+          bit #UnitStateUnselectable | UnitStateHidden
           beq +
 
             jmp _Next
@@ -584,7 +584,7 @@ GUARD_ZQOL_HP_BARS :?= false
         +
 
         lda structExpandedCharacterDataRAM.UnitState,b,x
-        bit #(UnitStateUnknown1 | UnitStateRescued | UnitStateRescuing | UnitStateActing | UnitStateInvisible)
+        bit #(UnitStateUnknown1 | UnitStateRescued | UnitStateRescuing | UnitStateHidden | UnitStateDisabled)
         beq +
 
           rtl
