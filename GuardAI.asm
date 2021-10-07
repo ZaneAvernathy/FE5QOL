@@ -27,7 +27,7 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
       ; in case more stationary AI settings are
       ; discovered.
 
-      ZQOL_GUARD_AI_LIST := [(aTemporaryActionStruct.AI1, [$01, $03])]
+      ZQOL_GUARD_AI_LIST := [(aTemporaryActionStruct.AI1, [$01, $03]), (aTemporaryActionStruct.AI1, [$02, $03])]
 
     .endweak
 
@@ -123,7 +123,7 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
 
       lda aTemporaryActionStruct.DeploymentNumber
       and #AllAllegiances
-      beq +
+      beq _NotGuard
 
       ; Check for guard AI combinations.
 
@@ -131,15 +131,26 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
 
         lda AISetting[0],b ; AI offset in character struct
         cmp #pack(AISetting[1]) ; Two AI setting bytes
-        bne +
+        beq _Guard
 
       .next
 
+        bra _NotGuard
+
         ; else AI is guard.
+        _Guard
+
+        ; Check if unit is trying to escape with
+        ; a captured unit.
+
+        lda aTemporaryActionStruct.Unknown3F
+        cmp #$1000
+        beq _NotGuard
+
         stz wR2
         jmp _End
 
-      +
+      _NotGuard
       ; AI is not guard, check if rescuing.
 
       lda aSelectedCharacterBuffer.UnitState,b
