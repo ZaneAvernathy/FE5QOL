@@ -110,6 +110,6 @@ GUARD_ZQOL_INSTALLER :?= false
 
       .endif ; INSTALL_QOL_HP_BARS
 
-    .here
+    .endlogical
 
 .endif ; GUARD_ZQOL_INSTALLER

@@ -114,7 +114,7 @@ GUARD_ZQOL_SWAP_ANIMATION_MODE :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
   ; Freespace inclusions
 
@@ -190,6 +190,6 @@ GUARD_ZQOL_SWAP_ANIMATION_MODE :?= false
 
         .databank 0
 
-    .send GetPossibleAnimationModeSection
+    .endsection GetPossibleAnimationModeSection
 
 .endif ; GUARD_ZQOL_SWAP_ANIMATION_MODE

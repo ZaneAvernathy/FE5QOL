@@ -250,7 +250,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $040616
     .logical mapped($040616)
@@ -511,7 +511,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $040755
     .logical mapped($040755)
@@ -569,7 +569,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $040788
     .logical mapped($040788)
@@ -602,7 +602,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $040818
     .logical mapped($040818)
@@ -691,7 +691,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $38F080
     .logical mapped($38F080)
@@ -703,7 +703,7 @@ GUARD_ZQOL_HP_BARS :?= false
           .binary "SystemIcons.4bpp"
         .endif
 
-    .here
+    .endlogical
 
   ; Freespace inclusions
 
@@ -890,7 +890,7 @@ GUARD_ZQOL_HP_BARS :?= false
         .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($137, 2, 2, false, false)
         .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($136, 2, 2, false, false)
 
-    .send TryRegisterHPBarSection
+    .endsection TryRegisterHPBarSection
 
     .section RenderTallMapSpriteAndStatusLoopSection
 
@@ -1024,7 +1024,7 @@ GUARD_ZQOL_HP_BARS :?= false
 
         .databank 0
 
-    .send RenderTallMapSpriteAndStatusLoopSection
+    .endsection RenderTallMapSpriteAndStatusLoopSection
 
     .section MissSpriteFrameSection
 

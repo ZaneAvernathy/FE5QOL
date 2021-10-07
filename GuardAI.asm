@@ -62,7 +62,7 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
   ; Freespace inclusions
 
@@ -226,6 +226,6 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
 
       .databank 0
 
-  .send GetEffectiveMoveSection
+  .endsection GetEffectiveMoveSection
 
 .endif ; GUARD_ZQOL_GUARD_AI_DISPLAY

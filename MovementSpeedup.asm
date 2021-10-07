@@ -37,7 +37,7 @@ GUARD_ZQOL_MOVEMENT_SPEEDUP :?= false
 
       .databank 0
 
-  .here
+  .endlogical
 
   ; Freespace inclusions
 
@@ -122,6 +122,6 @@ GUARD_ZQOL_MOVEMENT_SPEEDUP :?= false
 
       .databank 0
 
-  .send GetMovingMapSpriteMovementSpeedSection
+  .endsection GetMovingMapSpriteMovementSpeedSection
 
 .endif ; GUARD_ZQOL_MOVEMENT_SPEEDUP

@@ -136,7 +136,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
   ; Freespace inclusions
 
@@ -173,7 +173,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         .databank 0
 
-    .send TalkDisplaySection
+    .endsection TalkDisplaySection
 
     .section TalkDisplayFilterSection
 
@@ -253,7 +253,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         .databank 0
 
-    .send TalkDisplayFilterSection
+    .endsection TalkDisplayFilterSection
 
     .section ProcTalkDisplaySection
 
@@ -380,6 +380,6 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         .databank 0
 
-    .send ProcTalkDisplaySection
+    .endsection ProcTalkDisplaySection
 
 .endif ; GUARD_ZQOL_TALK_DISPLAY

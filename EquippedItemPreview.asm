@@ -234,7 +234,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $02217D
     .logical mapped($02217D)
@@ -254,7 +254,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $02218B
     .logical mapped($02218B)
@@ -357,7 +357,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $0221F7
     .logical mapped($0221F7)
@@ -373,7 +373,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
       .checkfit $84A20F
 
-    .here
+    .endlogical
 
     * := $022346
     .logical mapped($022346)
@@ -423,7 +423,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
     * := $02237E
     .logical mapped($02237E)
@@ -439,7 +439,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
       .checkfit $84A38A
 
-    .here
+    .endlogical
 
     * := $0223D3
     .logical mapped($0223D3)
@@ -461,7 +461,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .here
+    .endlogical
 
   ; Freespace inclusions
 
@@ -498,7 +498,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .send KillEquippedItemPreviewProcSection
+    .endsection KillEquippedItemPreviewProcSection
 
     .section DrawEquippedItemPreviewSection
 
@@ -620,7 +620,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .send DrawEquippedItemPreviewSection
+    .endsection DrawEquippedItemPreviewSection
 
     .section ProcEquippedItemPreviewSection
 
@@ -752,7 +752,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .send ProcEquippedItemPreviewSection
+    .endsection ProcEquippedItemPreviewSection
 
     .section DMAEquippedItemIconSection
 
@@ -818,13 +818,13 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         .databank 0
 
-    .send DMAEquippedItemIconSection
+    .endsection DMAEquippedItemIconSection
 
     .section BurstWindowTilemapSection
 
       aBurstWindowTilemaps .binary "BurstStyles.bin"
 
-    .send BurstWindowTilemapSection
+    .endsection BurstWindowTilemapSection
 
     .section ClearBurstWindowTilemapLayerSection
 
@@ -855,13 +855,13 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
 
         rtl
 
-    .send ClearBurstWindowTilemapLayerSection
+    .endsection ClearBurstWindowTilemapLayerSection
 
     .section BurstWindowTilesSection
 
       g4bppBurstWindowTiles .binary "BurstTiles.4bpp"
       g4bppRangeTiles .binary "RangeTiles.4bpp"
 
-    .send BurstWindowTilesSection
+    .endsection BurstWindowTilesSection
 
 .endif ; GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW
