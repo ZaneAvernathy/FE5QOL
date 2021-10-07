@@ -705,11 +705,11 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
         ; While the minimap is shown, the
         ; burst window is not displayed but
         ; its drawn flag is not unset, so
-        ; we use the terrain window's flag,
-        ; which is unset.
+        ; we use this.
 
-        lda wTerrainWindowTerrain
-        bpl +
+        lda wUnknown000E25,b
+        cmp #$000F
+        bne +
 
           jsl rlProcEngineFreeProc
           rtl
