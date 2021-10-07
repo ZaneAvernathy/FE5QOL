@@ -23,6 +23,7 @@ In the `TOOLS` folder, place:
 * [**SuperFamiconv**](https://github.com/Optiroc/SuperFamiconv)
 * [**64tass**](https://sourceforge.net/projects/tass64/)
 * [**VoltEdge**](https://github.com/ZaneAvernathy/VoltEdge)
+* [**fix_sym.py**](https://github.com/ZaneAvernathy/FE5Tools/blob/main/fix_sym.py)
 
 You'll also want to have some recent version of Python 3 installed and have your PATH configured to use it.
 

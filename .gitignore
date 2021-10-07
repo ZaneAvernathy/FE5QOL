@@ -17,4 +17,3 @@
 # Tools
 
 TOOLS/**
-!TOOLS/fix_sym.py
