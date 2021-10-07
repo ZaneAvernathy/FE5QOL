@@ -17,15 +17,169 @@ GUARD_ZQOL_HP_BARS :?= false
 
     .weak
 
-      aOAMUpperXBitTable       :?= address($808481)
-      aOAMSizeBitTable         :?= address($808681)
-      aDeploymentSlotTable     :?= address($838E98)
-      rlUnsignedMultiply16By16 :?= address($80AA27)
-      rlUnsignedDivide16By8    :?= address($80AAC3)
+      aOAMUpperXBitTable            :?= address($808481)
+      aOAMSizeBitTable              :?= address($808681)
+      rlActiveSpriteEngineFindEntry :?= address($818187)
+      rlUnknown81822E               :?= address($81822E)
+      aDeploymentSlotTable          :?= address($838E98)
+      rlUnsignedMultiply16By16      :?= address($80AA27)
+      rlUnsignedDivide16By8         :?= address($80AAC3)
+
+      structActiveSpriteFrame .struct Time, FramePointer
+        .byte 0
+        .byte \Time
+        .addr \FramePointer
+      .endstruct
+
+      structActiveSpriteFrameEnd .struct
+        .byte 1
+      .endstruct
 
     .endweak
 
   ; Fixed location inclusions
+
+    * := $00C318
+    .logical mapped($00C318)
+
+      rlRenderObjectiveMarkers ; 81/C318
+
+        .xl
+        .autsiz
+        .databank ?
+
+        jsl rlRenderObjectiveMarkersReplacement
+        rtl
+
+        .checkfit mapped($00C3A7)
+
+        .databank 0
+
+    .endlogical
+
+    * := $00C40D
+    .logical mapped($00C40D)
+
+      rsAppendObjectiveMarkerArray ; 81/C40D
+
+        .al
+        .xl
+        .autsiz
+        .databank `wObjectiveMarkerColorIndex
+
+        jsl rlAppendObjectiveMarkerArrayReplacement
+        rts
+
+        .checkfit mapped($00C444)
+
+        .databank 0
+
+    .endlogical
+
+    * := $02698B
+    .logical mapped($02698B)
+
+      rlUnknown84E98B ; 84/E98B
+
+        .al
+        .autsiz
+        .databank ?
+
+        ; Something to do with miss sprite rendering, see MissSpriteFrameSection
+
+        stz aProcSystem.aHeaderSleepTimer,b,x
+
+        lda #(`aMissActionSpriteInfo)<<8
+        sta lR44+size(byte)
+        lda #<>aMissActionSpriteInfo
+        sta lR44
+
+        jsl rlActiveSpriteEngineFindEntry
+        bcs +
+
+          ldx aProcSystem.wOffset,b
+          lda #$0001
+          sta aProcSystem.aHeaderSleepTimer,b,x
+
+        +
+        rtl
+
+        .checkfit mapped($0269A8)
+
+        .databank 0
+
+    .endlogical
+
+    * := $0269A8
+    .logical mapped($0269A8)
+
+      rlUnknown84E9A8 ; 84/E9A8
+
+        .al
+        .autsiz
+        .databank ?
+
+        ; Something to do with miss sprite rendering, see MissSpriteFrameSection
+
+        phx
+        phy
+
+        ldx aMapBattleMapSpriteActiveOffsetArray,b
+
+        lda aMapBattleTargetYCoordArray,b,x
+        asl a
+        asl a
+        asl a
+        asl a
+
+        sec
+        sbc wMapScrollYPixels,b
+
+        clc
+        adc #8
+
+        tay
+
+        lda aMapBattleTargetXCoordArray,b,x
+        asl a
+        asl a
+        asl a
+        asl a
+
+        sec
+        sbc wMapScrollXPixels,b
+
+        clc
+        adc #8
+
+        tax
+
+        lda #(`aMissActionSpriteInfo)<<8
+        sta lR44+size(byte)
+        lda #<>aMissActionSpriteInfo
+        sta lR44
+
+        lda aActiveSpriteSystem.wOffset,b
+        pha
+
+        jsl rlUnknown81822E
+
+        ldx aActiveSpriteSystem.wOffset,b
+        pla
+
+        sta aActiveSpriteSystem.wOffset,b
+
+        lda #$0100
+        sta aActiveSpriteSystem.aSpriteBase,b,x
+
+        ply
+        plx
+
+        rtl
+
+        .checkfit mapped($0269EF)
+
+    .endlogical
 
     * := $0405D1
     .logical mapped($0405D1)
@@ -542,7 +696,12 @@ GUARD_ZQOL_HP_BARS :?= false
     * := $38F080
     .logical mapped($38F080)
 
-      g4bppSystemIcons .binary "SystemIcons.4bpp"
+      g4bppSystemIcons
+        .if (QOL_HP_BAR_HIGH_CONTRAST)
+          .binary "SystemIconsHighContrast.4bpp"
+        .else
+          .binary "SystemIcons.4bpp"
+        .endif
 
     .here
 
@@ -611,7 +770,7 @@ GUARD_ZQOL_HP_BARS :?= false
         ; Current HP already in wR10, multiply by
         ; number of distinct bar settings.
 
-        lda #5
+        lda #13
         sta wR11
 
         jsl rlUnsignedMultiply16By16
@@ -717,11 +876,19 @@ GUARD_ZQOL_HP_BARS :?= false
         .databank 0
 
       aHPBarTable
-        _MaxDamage .word OAMTileAndAttr($13F, 2, 2, false, false), OAMTileAndAttr($12E, 1, 2, true, false)
-        _MidHighDamage .word OAMTileAndAttr($13E, 2, 2, false, false), OAMTileAndAttr($12E, 1, 2, true, false)
-        _MidDamage .word OAMTileAndAttr($12E, 2, 2, false, false), OAMTileAndAttr($12E, 1, 2, true, false)
-        _MidLowDamage .word OAMTileAndAttr($12E, 2, 2, false, false), OAMTileAndAttr($102, 2, 2, false, false)
-        _MinDamage .word OAMTileAndAttr($12E, 2, 2, false, false), OAMTileAndAttr($12F, 2, 2, false, false)
+        .word OAMTileAndAttr($12A, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($12B, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($12E, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($12F, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($13E, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($13F, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($11E, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($13B, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($13A, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($139, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($138, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($137, 2, 2, false, false)
+        .word OAMTileAndAttr($102, 2, 2, false, false), OAMTileAndAttr($136, 2, 2, false, false)
 
     .send TryRegisterHPBarSection
 
@@ -858,5 +1025,305 @@ GUARD_ZQOL_HP_BARS :?= false
         .databank 0
 
     .send RenderTallMapSpriteAndStatusLoopSection
+
+    .section MissSpriteFrameSection
+
+      ; The `miss` graphic that appears when a staff user
+      ; misses during map battle animations has a tile that
+      ; consists of a vertical line of black pixels. We can
+      ; render a flipped copy of the `ss` part of the graphic
+      ; behind the actual `ss`, shifted right a pixel, to
+      ; mimic this tile and free the graphics space of HP bar
+      ; graphics.
+
+      MissSpriteFrameDefs := [(1, -4), (1, -7), (1, -9), (1, -11), (1, -13), (1, -15), (1, -17), (1, -18), (1, -19), (48, -20)]
+
+      aMissSpriteFrames .bfor t in MissSpriteFrameDefs
+        yCoord := t[1]
+
+        MissSpriteFrame  := [[[ 0, yCoord], $00, SpriteSmall, $00F, 3, 0, False, False]]
+        MissSpriteFrame ..= [[[-8, yCoord], $00, SpriteSmall, $00E, 3, 0, False, False]]
+        MissSpriteFrame ..= [[[ 1, yCoord], $00, SpriteSmall, $00F, 3, 0, True, False]]
+
+        .structSpriteArray MissSpriteFrame
+      .endfor
+
+      aMissActiveSpriteFrames
+        .bfor f in range(len(MissSpriteFrameDefs))
+          Time := MissSpriteFrameDefs[f][0]
+          .structActiveSpriteFrame Time, aMissSpriteFrames[f]
+        .endfor
+      .structActiveSpriteFrameEnd
+
+      aMissActionSpriteInfo .word None, None, <>aMissActiveSpriteFrames
+
+    .endsection MissSpriteFrameSection
+
+    .section ObjectiveMarkerHPBarEditsSection
+
+      ; We shift the objective marker graphics by
+      ; a pixel and render them as 4 small sprites instead
+      ; of one large one in order to deduplicate two
+      ; tiles per frame.
+
+      rlRenderObjectiveMarkersReplacement
+
+        .xl
+        .autsiz
+        .databank ?
+
+        php
+        phb
+        sep #$20
+        lda #`wObjectiveMarkerColorValue
+        pha
+        rep #$20
+        plb
+
+        .databank `wObjectiveMarkerColorValue
+
+        stz wR17
+
+        lda wObjectiveMarkerColorValue
+        sta wR5
+
+        inc wObjectiveMarkerFrame
+        ldx wObjectiveMarkerFrame
+
+        lda _FrameTable,x
+        and #$00FF
+
+        cmp #$00FF
+        bne +
+
+        stz wObjectiveMarkerFrame
+        lda #0
+
+        +
+        sta wR6
+        phb
+        php
+        phk
+        plb
+
+        .databank `*
+
+        -
+        ldx wR17
+        lda aObjectiveMarkers+structObjectiveMarkerEntryRAM.X,x
+        bmi _End
+
+        sec
+        sbc wMapScrollXPixels,b
+        sta wR0
+
+        lda aObjectiveMarkers+structObjectiveMarkerEntryRAM.Y,x
+        sec
+        sbc wMapScrollYPixels,b
+        sta wR1
+
+        lda aObjectiveMarkers+structObjectiveMarkerEntryRAM.Sprite,x
+
+        tax
+        lda _SpritePointers,x
+
+        clc
+        adc wR6
+        tax
+
+        lda 0,b,x
+        tay
+
+        stz wR4
+
+        jsl rlPushToOAMBuffer
+
+        lda wR17
+        clc
+        adc #size(structObjectiveMarkerEntryRAM)
+        sta wR17
+        bra -
+
+        _End
+        plp
+        plb
+        plb
+        plp
+        rtl
+
+        _FrameTable
+        .for n in range(3)
+          .for i in range(12)
+            .byte n * size(word)
+          .next
+        .next
+        .char -1
+
+        _SpritePointers
+          .addr aOBJMLeftSprites
+          .addr aOBJMRightSprites
+          .addr aOBJMUpSprites
+          .addr aOBJMDownSprites
+
+        aOBJMLeftSprites
+          .addr aOBJMLeftFrame0
+          .addr aOBJMLeftFrame1
+          .addr aOBJMLeftFrame2
+
+        aOBJMRightSprites
+          .addr aOBJMRightFrame0
+          .addr aOBJMRightFrame1
+          .addr aOBJMRightFrame2
+
+        aOBJMUpSprites
+          .addr aOBJMUpFrame0
+          .addr aOBJMUpFrame1
+          .addr aOBJMUpFrame2
+
+        aOBJMDownSprites
+          .addr aOBJMDownFrame0
+          .addr aOBJMDownFrame1
+          .addr aOBJMDownFrame2
+
+        OBJMLeftFrame0Sprites  := [[[1, 0], $00, SpriteSmall, $120, 2, 0, False, False]]
+        OBJMLeftFrame0Sprites ..= [[[1, 8], $00, SpriteSmall, $130, 2, 0, False, False]]
+        OBJMLeftFrame0Sprites ..= [[[9, 0], $00, SpriteSmall, $123, 2, 0, False, False]]
+        OBJMLeftFrame0Sprites ..= [[[9, 8], $00, SpriteSmall, $133, 2, 0, False, False]]
+
+        aOBJMLeftFrame0 .structSpriteArray OBJMLeftFrame0Sprites
+
+        OBJMLeftFrame1Sprites  := [[[1, 0], $00, SpriteSmall, $121, 2, 0, False, False]]
+        OBJMLeftFrame1Sprites ..= [[[1, 8], $00, SpriteSmall, $131, 2, 0, False, False]]
+        OBJMLeftFrame1Sprites ..= [[[9, 0], $00, SpriteSmall, $123, 2, 0, False, False]]
+        OBJMLeftFrame1Sprites ..= [[[9, 8], $00, SpriteSmall, $133, 2, 0, False, False]]
+
+        aOBJMLeftFrame1 .structSpriteArray OBJMLeftFrame1Sprites
+
+        OBJMLeftFrame2Sprites  := [[[1, 0], $00, SpriteSmall, $122, 2, 0, False, False]]
+        OBJMLeftFrame2Sprites ..= [[[1, 8], $00, SpriteSmall, $132, 2, 0, False, False]]
+        OBJMLeftFrame2Sprites ..= [[[9, 0], $00, SpriteSmall, $123, 2, 0, False, False]]
+        OBJMLeftFrame2Sprites ..= [[[9, 8], $00, SpriteSmall, $133, 2, 0, False, False]]
+
+        aOBJMLeftFrame2 .structSpriteArray OBJMLeftFrame2Sprites
+
+        OBJMRightFrame0Sprites  := [[[7, 0], $00, SpriteSmall, $120, 2, 0, True, False]]
+        OBJMRightFrame0Sprites ..= [[[7, 8], $00, SpriteSmall, $130, 2, 0, True, False]]
+        OBJMRightFrame0Sprites ..= [[[-1, 0], $00, SpriteSmall, $123, 2, 0, True, False]]
+        OBJMRightFrame0Sprites ..= [[[-1, 8], $00, SpriteSmall, $133, 2, 0, True, False]]
+
+        aOBJMRightFrame0 .structSpriteArray OBJMRightFrame0Sprites
+
+        OBJMRightFrame1Sprites  := [[[7, 0], $00, SpriteSmall, $121, 2, 0, True, False]]
+        OBJMRightFrame1Sprites ..= [[[7, 8], $00, SpriteSmall, $131, 2, 0, True, False]]
+        OBJMRightFrame1Sprites ..= [[[-1, 0], $00, SpriteSmall, $123, 2, 0, True, False]]
+        OBJMRightFrame1Sprites ..= [[[-1, 8], $00, SpriteSmall, $133, 2, 0, True, False]]
+
+        aOBJMRightFrame1 .structSpriteArray OBJMRightFrame1Sprites
+
+        OBJMRightFrame2Sprites  := [[[7, 0], $00, SpriteSmall, $122, 2, 0, True, False]]
+        OBJMRightFrame2Sprites ..= [[[7, 8], $00, SpriteSmall, $132, 2, 0, True, False]]
+        OBJMRightFrame2Sprites ..= [[[-1, 0], $00, SpriteSmall, $123, 2, 0, True, False]]
+        OBJMRightFrame2Sprites ..= [[[-1, 8], $00, SpriteSmall, $133, 2, 0, True, False]]
+
+        aOBJMRightFrame2 .structSpriteArray OBJMRightFrame2Sprites
+
+        OBJMUpFrame0Sprites  := [[[0, 1], $00, SpriteSmall, $124, 2, 0, False, False]]
+        OBJMUpFrame0Sprites ..= [[[8, 1], $00, SpriteSmall, $125, 2, 0, False, False]]
+        OBJMUpFrame0Sprites ..= [[[0, 9], $00, SpriteSmall, $134, 2, 0, False, False]]
+        OBJMUpFrame0Sprites ..= [[[8, 9], $00, SpriteSmall, $135, 2, 0, False, False]]
+
+        aOBJMUpFrame0 .structSpriteArray OBJMUpFrame0Sprites
+
+        OBJMUpFrame1Sprites  := [[[0, 1], $00, SpriteSmall, $126, 2, 0, False, False]]
+        OBJMUpFrame1Sprites ..= [[[8, 1], $00, SpriteSmall, $127, 2, 0, False, False]]
+        OBJMUpFrame1Sprites ..= [[[0, 9], $00, SpriteSmall, $134, 2, 0, False, False]]
+        OBJMUpFrame1Sprites ..= [[[8, 9], $00, SpriteSmall, $135, 2, 0, False, False]]
+
+        aOBJMUpFrame1 .structSpriteArray OBJMUpFrame1Sprites
+
+        OBJMUpFrame2Sprites  := [[[0, 1], $00, SpriteSmall, $128, 2, 0, False, False]]
+        OBJMUpFrame2Sprites ..= [[[8, 1], $00, SpriteSmall, $129, 2, 0, False, False]]
+        OBJMUpFrame2Sprites ..= [[[0, 9], $00, SpriteSmall, $134, 2, 0, False, False]]
+        OBJMUpFrame2Sprites ..= [[[8, 9], $00, SpriteSmall, $135, 2, 0, False, False]]
+
+        aOBJMUpFrame2 .structSpriteArray OBJMUpFrame2Sprites
+
+        OBJMDownFrame0Sprites  := [[[0, 7], $00, SpriteSmall, $124, 2, 0, False, True]]
+        OBJMDownFrame0Sprites ..= [[[8, 7], $00, SpriteSmall, $125, 2, 0, False, True]]
+        OBJMDownFrame0Sprites ..= [[[0, -1], $00, SpriteSmall, $134, 2, 0, False, True]]
+        OBJMDownFrame0Sprites ..= [[[8, -1], $00, SpriteSmall, $135, 2, 0, False, True]]
+
+        aOBJMDownFrame0 .structSpriteArray OBJMDownFrame0Sprites
+
+        OBJMDownFrame1Sprites  := [[[0, 7], $00, SpriteSmall, $126, 2, 0, False, True]]
+        OBJMDownFrame1Sprites ..= [[[8, 7], $00, SpriteSmall, $127, 2, 0, False, True]]
+        OBJMDownFrame1Sprites ..= [[[0, -1], $00, SpriteSmall, $134, 2, 0, False, True]]
+        OBJMDownFrame1Sprites ..= [[[8, -1], $00, SpriteSmall, $135, 2, 0, False, True]]
+
+        aOBJMDownFrame1 .structSpriteArray OBJMDownFrame1Sprites
+
+        OBJMDownFrame2Sprites  := [[[0, 7], $00, SpriteSmall, $128, 2, 0, False, True]]
+        OBJMDownFrame2Sprites ..= [[[8, 7], $00, SpriteSmall, $129, 2, 0, False, True]]
+        OBJMDownFrame2Sprites ..= [[[0, -1], $00, SpriteSmall, $134, 2, 0, False, True]]
+        OBJMDownFrame2Sprites ..= [[[8, -1], $00, SpriteSmall, $135, 2, 0, False, True]]
+
+        aOBJMDownFrame2 .structSpriteArray OBJMDownFrame2Sprites
+
+        .databank 0
+
+      rlAppendObjectiveMarkerArrayReplacement
+
+        .al
+        .xl
+        .autsiz
+        .databank `wObjectiveMarkerColorIndex
+
+        ldx wR17 ; Loop counter
+
+        ; Fetch tile from coordinates
+
+        jsl rlGetMapTileIndexByCoords
+
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.Tile,x
+
+        ; Coordinates
+
+        lda wR0
+        asl a
+        asl a
+        asl a
+        asl a
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.X,x
+
+        lda wR1
+        asl a
+        asl a
+        asl a
+        asl a
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.Y,x
+
+        ; Sprite
+
+        txy
+        lda wR2
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.Sprite,y
+        tya
+
+        ; Advance, lay a terminator over next entry
+
+        clc
+        adc #size(structObjectiveMarkerEntryRAM)
+        sta wR17
+
+        tax
+
+        lda #-1
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.X,x
+        sta aObjectiveMarkers+structObjectiveMarkerEntryRAM.Tile,x
+        rtl
+
+        .databank 0
+
+    .endsection ObjectiveMarkerHPBarEditsSection
 
 .endif ; GUARD_ZQOL_HP_BARS

@@ -52,3 +52,8 @@ INSTALL_QOL_HP_BARS :?= true
   ; have a small bar along the bottom of
   ; their map sprite that gives an
   ; approximation of their current health.
+
+QOL_HP_BAR_HIGH_CONTRAST :?= false
+  ; When enabled, changes HP bars to be
+  ; green against black for higher contrast
+  ; instead of green against red.

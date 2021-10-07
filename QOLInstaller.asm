@@ -105,6 +105,8 @@ GUARD_ZQOL_INSTALLER :?= false
 
         .dsection TryRegisterHPBarSection
         .dsection RenderTallMapSpriteAndStatusLoopSection
+        .dsection MissSpriteFrameSection
+        .dsection ObjectiveMarkerHPBarEditsSection
 
       .endif ; INSTALL_QOL_HP_BARS
 
