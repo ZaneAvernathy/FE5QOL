@@ -222,7 +222,13 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
             lda wR2
             sta wR0
 
+            pei lR25
+            pei lR25+size(byte)
             jsl rlCheckAvailableTalks
+            pla
+            sta lR25+size(byte)
+            pla
+            sta lR25
             bcc _End
 
               ; Talk available, create bubble proc
@@ -345,6 +351,18 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         jsl rlGetPixelDistanceFromScreenEdge
 
+        ; Check if sprite is onscreen.
+        lda wR0
+        cmp #256
+        bge +
+
+        lda wR1
+        cmp #224
+        bge +
+
+        ora wR0
+        bmi +
+
         stz wR4
         stz wR5
 
@@ -352,6 +370,7 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
 
         jsl rlPushToOAMBuffer
 
+        +
         plb
         plp
 
