@@ -17,3 +17,4 @@
 # Tools
 
 TOOLS/**
+!/TOOLS
