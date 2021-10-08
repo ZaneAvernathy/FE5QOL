@@ -13,8 +13,3 @@
 *.comp
 *.csv.asm
 *.bin
-
-# Tools
-
-TOOLS/**
-!/TOOLS
