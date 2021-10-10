@@ -40,6 +40,14 @@ INSTALL_QOL_TALK_DISPLAY :?= true
   ; partners for a selected unit will display
   ; a bubble above them.
 
+QOL_USE_VANILLA_TALKS :?= true
+  ; Enabled by default, defines vanilla FE5 talk targets
+  ; for use with the talk display. Also enables vanilla FE5
+  ; character definitions through VoltEdge.
+  ; Disable if you aren't using vanilla FE5 events.
+  ; See TalkDisplay.asm for information about building
+  ; your own talk target tables.
+
 INSTALL_QOL_EQUIPPED_ITEM_PREVIEW :?= true
   ; When installed, a unit's equipped weapon
   ; will appear on the burst window. If the

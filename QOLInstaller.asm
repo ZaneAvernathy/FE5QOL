@@ -12,11 +12,17 @@ GUARD_ZQOL_INSTALLER :?= false
 
 .elsif (!GUARD_ZQOL_INSTALLER)
 
-  .include "TOOLS/VoltEdge.h"
-
   ; Definitions
 
     .include "QOLConfiguration.txt"
+
+    .if (INSTALL_QOL_TALK_DISPLAY && QOL_USE_VANILLA_TALKS)
+
+      USE_FE5_CHARACTERS := true
+
+    .endif
+
+    .include "TOOLS/VoltEdge.h"
 
   ; Fixed location inclusions
 
@@ -84,7 +90,8 @@ GUARD_ZQOL_INSTALLER :?= false
       .if (INSTALL_QOL_TALK_DISPLAY)
 
         .dsection TalkDisplaySection
-        .dsection TalkDisplayFilterSection
+        .dsection GetChapterTalkTargetTablePointerSection
+        .dsection VanillaChapterTalkTableSection
         .dsection ProcTalkDisplaySection
 
       .endif ; INSTALL_QOL_TALK_DISPLAY

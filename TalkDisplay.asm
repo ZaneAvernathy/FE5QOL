@@ -24,12 +24,27 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
       rsUnknown838764                               :?= address($838764)
       rlGetMapTileIndexByCoords                     :?= address($838E76)
       rlCopyCharacterDataToBufferByDeploymentNumber :?= address($83901C)
-      rlRunRoutineForAllUnits                       :?= address($839861)
+      rlSearchForUnitAndWriteTargetToBuffer         :?= address($83976E)
       rlClearJoyNewInputs                           :?= address($839B7F)
       rlUnknown83CD2B                               :?= address($83CD2B)
       procBMenu                                     :?= address($8A82D7)
       rlCheckAvailableTalks                         :?= address($8C9C59)
       g4bppExclamationBubble                        :?= address($A0E060)
+
+      ; These are for writing talk target tables, see
+      ; VanillaChapterTalkTableSection for more info.
+
+      ZQOL_TALK_ENTRY .macro Initiator, TargetList=[]
+        .word \Initiator
+        .word len(\TargetList) * size(word)
+        .word \TargetList
+      .endmacro
+
+      ZQOL_END_TALK_CHAPTER_Val := -1
+
+      ZQOL_END_TALK_CHAPTER .macro
+        .sint ZQOL_END_TALK_CHAPTER_Val
+      .endm
 
       ; Slightly hacky workaround for
       ; defining a redefinable local label.
@@ -149,111 +164,451 @@ GUARD_ZQOL_TALK_DISPLAY :?= false
         .autsiz
         .databank `aPlayerVisibleUnitMap
 
-        ; Holdover from rsDrawMovementRangeOrBMenu
-
-        jsl rlUnknown83CD2B
-
-        ; Use character as an input
-        ; into the talk partner search loop.
-
-        lda aSelectedCharacterBuffer.Character,b
-        sta wR2
-
-        ; Search through all units for
-        ; talk partners.
-
-        lda #(`rlTalkDisplayFilter)<<8
-        sta lR25+1
-        lda #<>rlTalkDisplayFilter
-        sta lR25
-
-        jsl rlRunRoutineForAllUnits
-
-        rtl
-
-        .databank 0
-
-    .endsection TalkDisplaySection
-
-    .section TalkDisplayFilterSection
-
-      rlTalkDisplayFilter
-
-        .al
-        .xl
-        .autsiz
-        .databank ?
-
         ; Inputs:
-        ; wR2: Talk initiator
-        ; aTargetingCharacterBuffer: potential target
+        ; aSelectedCharacterBuffer: initiator
 
         ; Outputs:
         ; procTalkDisplay or nothing
 
-        ; Check if unit is alive/deployed/visible.
+        ; Holdover from rsDrawMovementRangeOrBMenu
 
-        lda aTargetingCharacterBuffer.UnitState,b
-        bit #(UnitStateDead | UnitStateUnknown1 | UnitStateHidden | UnitStateDisabled | UnitStateCaptured)
-        bne _End
+        jsl rlUnknown83CD2B
 
-          ; Check if unit is within vision range.
+        ; Get chapter's potential talk table.
 
-          lda aTargetingCharacterBuffer.X,b
-          and #$00FF
-          sta wR0
+        jsl rlGetChapterTalkTargetTablePointer
+        bcs +
 
-          lda aTargetingCharacterBuffer.Y,b
-          and #$00FF
-          sta wR1
+          rtl
 
-          jsl rlGetMapTileIndexByCoords
+        +
 
-          tax
-          lda aPlayerVisibleUnitMap,x
-          and #$00FF
-          beq _End
+        ldy #0
 
-            ; Check for talks.
+        ; For each entry in the table, for the end
+        ; of the table or the initiator.
 
-            lda aTargetingCharacterBuffer.Character,b
-            sta wR1
+        _InitiatorLoop
 
-            lda wR2
-            sta wR0
+          lda [lR18],y
 
-            pei lR25
-            pei lR25+size(byte)
-            jsl rlCheckAvailableTalks
-            pla
-            sta lR25+size(byte)
-            pla
-            sta lR25
-            bcc _End
+          cmp #+ZQOL_END_TALK_CHAPTER_Val
+          bne +
 
-              ; Talk available, create bubble proc
+            jmp _End
 
-              lda aTargetingCharacterBuffer.X,b
+          +
+          cmp aSelectedCharacterBuffer.Character,b
+          beq +
+
+            jmp _NextInitiator
+
+          +
+            ; Get potential target count
+
+            inc y
+            inc y
+
+            lda [lR18],y
+            tax
+
+            inc y
+            inc y
+
+            ; Now, loop through all targets in entry.
+
+            _TargetLoop
+
+              lda [lR18],y
+
+              ; Check if the target is on the map.
+
+              phx
+              phy
+
+              sta wR0
+              lda #<>aBurstWindowCharacterBuffer
+              sta wR1
+              jsl rlSearchForUnitAndWriteTargetToBuffer
+
+              ply
+              plx
+
+              ; Check if unit was not found.
+
+              ora #$0000
+              bne _NextTarget
+
+              ; Check if unit is on the map and is visible.
+
+              lda aBurstWindowCharacterBuffer.UnitState,b
+              bit #(UnitStateDead | UnitStateUnknown1 | UnitStateHidden | UnitStateDisabled | UnitStateCaptured)
+              bne _NextTarget
+
+              phx
+
+              lda aBurstWindowCharacterBuffer.X,b
               and #$00FF
-              sta aProcSystem.wInput0,b
+              sta wR0
 
-              lda aTargetingCharacterBuffer.Y,b
+              lda aBurstWindowCharacterBuffer.Y,b
               and #$00FF
-              sta aProcSystem.wInput1,b
+              sta wR1
 
-              lda #(`procTalkDisplay)<<8
-              sta lR44+1
-              lda #<>procTalkDisplay
-              sta lR44
+              jsl rlGetMapTileIndexByCoords
 
-              jsl rlProcEngineCreateProc
+              tax
+              lda aPlayerVisibleUnitMap,x
 
-        _End
+              plx
+
+              and #$00FF
+              beq _NextTarget
+
+              ; Check if initiator and target have a talk available.
+
+              lda aSelectedCharacterBuffer.Character,b
+              sta wR0
+              lda aBurstWindowCharacterBuffer.Character,b
+              sta wR1
+
+              lda aBurstWindowCharacterBuffer.DeploymentNumber,b
+              and #$00FF
+              pha
+
+              pei lR18
+              pei lR18+size(byte)
+              phx
+              phy
+              jsl rlCheckAvailableTalks
+              ply
+              plx
+              pla
+              sta lR18+size(byte)
+              pla
+              sta lR18
+              pla
+              bcc _NextTarget
+
+                ; Finally, we can make our talk bubble.
+
+                sta wR0
+
+                lda #<>aBurstWindowCharacterBuffer
+                sta wR1
+
+                jsl rlCopyCharacterDataToBufferByDeploymentNumber
+
+
+                lda aBurstWindowCharacterBuffer.X,b
+                and #$00FF
+                sta aProcSystem.wInput0,b
+
+                lda aBurstWindowCharacterBuffer.Y,b
+                and #$00FF
+                sta aProcSystem.wInput1,b
+
+                phx
+                phy
+
+                lda #(`procTalkDisplay)<<8
+                sta lR44+size(byte)
+                lda #<>procTalkDisplay
+                sta lR44
+
+                jsl rlProcEngineCreateProc
+
+                ply
+                plx
+
+                ; Fall though to the next target.
+
+              _NextTarget
+
+                inc y
+                inc y
+                dec x
+                dec x
+                beq +
+
+                  jmp _TargetLoop
+
+                +
+                ; Out of targets, move to next initiator.
+
+                jmp _InitiatorLoop
+
+          _NextInitiator
+
+            ; Skip over character word, add to target
+            ; list size, loop.
+
+            inc y
+            inc y
+
+            tya
+
+            clc
+            adc [lR18],y
+
+            ; Add size of list size word, too.
+
+            clc
+            adc #size(word)
+
+            tay
+
+            jmp _InitiatorLoop
+
+          _End
+
+          rtl
+
+          .databank 0
+
+    .endsection TalkDisplaySection
+
+    .section GetChapterTalkTargetTablePointerSection
+
+      rlGetChapterTalkTargetTablePointer
+
+        .autsiz
+        .databank ?
+
+        ; Inputs:
+        ; None
+
+        ; Outputs:
+        ; lR18: long pointer to talk target table
+        ; Carry set if chapter has talk targets else
+        ;   carry clear.
+
+        ; Gets the current chapter's talk target table.
+
+        php
+        phb
+
+        sep #$20
+
+        lda #`aChapterTalkTargetTablePointers
+        pha
+
+        rep #$30
+
+        plb
+
+        .databank `aChapterTalkTargetTablePointers
+
+        ; aChapterTalkTargetTablePointers + (wCurrentChapter * size(long))
+
+        lda wCurrentChapter,b
+        asl a
+        clc
+        adc wCurrentChapter,b
+
+        tax
+        lda aChapterTalkTargetTablePointers,x
+        sta lR18
+        lda aChapterTalkTargetTablePointers+size(byte),x
+        sta lR18+size(byte)
+
+        lda lR18
+        ora lR18+size(byte)
+        beq _NoTalks
+
+          plb
+          plp
+          sec
+          rtl
+
+        _NoTalks
+        plb
+        plp
+        clc
         rtl
 
         .databank 0
 
-    .endsection TalkDisplayFilterSection
+    .endsection GetChapterTalkTargetTablePointerSection
+
+    .section VanillaChapterTalkTableSection
+
+      .if (QOL_USE_VANILLA_TALKS)
+
+        ; This data is for specifying talk partners for
+        ; vanilla talk events. Each chapter gets a long
+        ; pointer in aChapterTalkTargetTablePointers. This
+        ; points to a set of ZQOL_TALK_ENTRY macros terminated
+        ; by a ZQOL_END_TALK_CHAPTER macro. To specify
+        ; your own tables, set QOL_USE_VANILLA_TALKS to
+        ; false, and construct aChapterTalkTargetTablePointers
+        ; and your chapters' tables elsewhere.
+
+        ; This is a pointer table, indexed by chapter.
+        ; A null pointer means that the chapter has no talks.
+
+        aChapterTalkTargetTablePointers
+          .long aChapter1TalkTargetTable
+          .long None
+          .long aChapter2xTalkTargetTable
+          .long None
+          .long aChapter4TalkTargetTable
+          .long aChapter4xTalkTargetTable
+          .long None
+          .long None
+          .long aChapter7TalkTargetTable
+          .long aChapter8TalkTargetTable
+          .long aChapter8xTalkTargetTable
+          .long aChapter9TalkTargetTable
+          .long None
+          .long None
+          .long aChapter11xTalkTargetTable
+          .long None
+          .long aChapter12xTalkTargetTable
+          .long aChapter13TalkTargetTable
+          .long None
+          .long None
+          .long aChapter15TalkTargetTable
+          .long aChapter16ATalkTargetTable
+          .long aChapter17ATalkTargetTable
+          .long aChapter16BTalkTargetTable
+          .long None
+          .long aChapter18TalkTargetTable
+          .long aChapter19TalkTargetTable
+          .long None
+          .long None
+          .long None
+          .long aChapter22TalkTargetTable
+          .long aChapter23TalkTargetTable
+          .long aChapter24TalkTargetTable
+          .long aChapter24xTalkTargetTable
+          .long None
+
+        ; These are a series of initiators and their
+        ; potential targets. Each initiator, target combo
+        ; will be chacked against the chapter's talk
+        ; event definitions. These are not a replacement
+        ; for the chapter talk event definitions.
+
+        aChapter1TalkTargetTable
+          ZQOL_TALK_ENTRY Eyvel, [Dagdar]
+          ZQOL_TALK_ENTRY Orsin, [Tanya]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter2xTalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Eyvel]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter4TalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Dahlson]
+          ZQOL_TALK_ENTRY Lithis, [Dahlson]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter4xTalkTargetTable
+          ZQOL_TALK_ENTRY Asvel, [Leif]
+          ZQOL_TALK_ENTRY Leif, [Asvel]
+          ZQOL_TALK_ENTRY Karin, [CedChp4x]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter7TalkTargetTable
+          ZQOL_TALK_ENTRY Sapphie, [Shiva]
+          ZQOL_TALK_ENTRY Leif, [Finn]
+          ZQOL_TALK_ENTRY Nanna, [Finn]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter8TalkTargetTable
+          ZQOL_TALK_ENTRY Orsin, [Marty]
+          ZQOL_TALK_ENTRY Halvan, [Marty]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter8xTalkTargetTable
+          ZQOL_TALK_ENTRY Orsin, [Tanya]
+          ZQOL_TALK_ENTRY Leif, [Dagdar]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter9TalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Selphina]
+          ZQOL_TALK_ENTRY Selphina, [Finn]
+          ZQOL_TALK_ENTRY Callion, [Selphina]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter11xTalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Olwen]
+          ZQOL_TALK_ENTRY Fred, [Olwen]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter12xTalkTargetTable
+          ZQOL_TALK_ENTRY Salem, [Pan]
+          ZQOL_TALK_ENTRY Lithis, [Pan]
+          ZQOL_TALK_ENTRY Lara, [Pan]
+          ZQOL_TALK_ENTRY Pan, [Trude]
+          ZQOL_TALK_ENTRY Sapphie, [Tina]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter13TalkTargetTable
+          ZQOL_TALK_ENTRY Finn, [Glade]
+          ZQOL_TALK_ENTRY Selphina, [Glade]
+          ZQOL_TALK_ENTRY Leif, [Glade]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter15TalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Ralph]
+          ZQOL_TALK_ENTRY Mareeta, [Shanam]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter16ATalkTargetTable
+          ZQOL_TALK_ENTRY Olwen, [Kempf]
+          ZQOL_TALK_ENTRY Karin, [Ilios]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter17ATalkTargetTable
+          ZQOL_TALK_ENTRY Karin, [Mischa]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter16BTalkTargetTable
+          ZQOL_TALK_ENTRY Homer, [Shanam]
+          ZQOL_TALK_ENTRY Salem, [Sarah]
+          ZQOL_TALK_ENTRY Leif, [Sarah]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter18TalkTargetTable
+          ZQOL_TALK_ENTRY Xavier, [Leif]
+          ZQOL_TALK_ENTRY Leif, [Xavier]
+          ZQOL_TALK_ENTRY Civilian9, [XavierArmor1]
+          ZQOL_TALK_ENTRY Civilian10, [XavierArmor2]
+          ZQOL_TALK_ENTRY Civilian11, [XavierArmor3]
+          ZQOL_TALK_ENTRY Civilian12, [XavierArmor4]
+          ZQOL_TALK_ENTRY Civilian13, [XavierArmor5]
+          ZQOL_TALK_ENTRY Civilian14, [XavierArmor6]
+          ZQOL_TALK_ENTRY Civilian15, [XavierArmor7]
+          ZQOL_TALK_ENTRY Civilian16, [XavierArmor8]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter19TalkTargetTable
+          ZQOL_TALK_ENTRY Miranda, [Conomore]
+          ZQOL_TALK_ENTRY Schroff, [Amalda]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter22TalkTargetTable
+          ZQOL_TALK_ENTRY Olwen, [Reinhardt]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter23TalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [CedChp23, Saias]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter24TalkTargetTable
+          ZQOL_TALK_ENTRY Mareeta, [Galzus]
+        ZQOL_END_TALK_CHAPTER
+
+        aChapter24xTalkTargetTable
+          ZQOL_TALK_ENTRY Leif, [Eyvel]
+          ZQOL_TALK_ENTRY Mareeta, [Eyvel]
+        ZQOL_END_TALK_CHAPTER
+
+      .endif ; QOL_USE_VANILLA_TALKS
+
+    .endsection VanillaChapterTalkTableSection
 
     .section ProcTalkDisplaySection
 
