@@ -414,7 +414,7 @@ GUARD_ZQOL_EQUIPPED_ITEM_PREVIEW :?= false
         sta wR1
 
         lda #TilemapEntry($000, 1, 1, false, false)
-        sta wUnknown000DE7,b
+        sta aCurrentTilemapInfo.wBaseTile,b
 
         jsl rlDrawTilemapPackedRect
         rts

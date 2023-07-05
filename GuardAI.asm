@@ -27,7 +27,7 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
       ; in case more stationary AI settings are
       ; discovered.
 
-      ZQOL_GUARD_AI_LIST := [(aTemporaryActionStruct.AI1, [$01, $03]), (aTemporaryActionStruct.AI1, [$02, $03])]
+      ZQOL_GUARD_AI_LIST := [(aTemporaryActionStruct.ActionAI, [ActionAI_100, MovementAI_Stationary]), (aTemporaryActionStruct.ActionAI, [ActionAI_NoAction, MovementAI_Stationary])]
 
     .endweak
 
@@ -143,8 +143,8 @@ GUARD_ZQOL_GUARD_AI_DISPLAY :?= false
         ; Check if unit is trying to escape with
         ; a captured unit.
 
-        lda aTemporaryActionStruct.Unknown3F
-        cmp #$1000
+        lda aTemporaryActionStruct.AIProperties
+        cmp #AI_Fleeing
         beq _NotGuard
 
         stz wR2
